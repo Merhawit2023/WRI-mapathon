@@ -1,36 +1,22 @@
 <?php
-// Get the JSON data from the POST request
-$data = json_decode(file_get_contents("php://input"), true);
 
-// Process the notification data
-if ($data) {
-    // Handle the notification data (e.g., store in database, update dashboard)
-    // For example, you can store the data in your database
-    $servername = "localhost";
-    $username = "root";
-    $password = "";
-    $dbname = "harassment_reports";
-
-    $conn = new mysqli($servername, $username, $password, $dbname);
-    if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
-    }
-
-    $date = $data['date'];
-    $time = $data['time'];
-    $location = $data['location'];
-    $description = $data['description'];
-    $contact = $data['contact'];
-
-    $sql = "INSERT INTO harassment_reports (date, time, location, description, contact) VALUES ('$date', '$time', '$location', '$description', '$contact')";
-    if ($conn->query($sql) === TRUE) {
-        echo "Report stored successfully.";
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
-    }
-
-    $conn->close();
+// Check if the request method is POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get the raw POST data
+    $data = file_get_contents('php://input');
+    
+    // Decode the JSON data into an associative array
+    $report = json_decode($data, true);
+    
+    // Process the data as needed
+    // For example, you can log it or store it in a database
+    file_put_contents('harassment_reports.txt', json_encode($report) . PHP_EOL, FILE_APPEND);
+    
+    // Send a response back
+    http_response_code(200);
+    echo json_encode(array('message' => 'Received harassment report'));
 } else {
-    echo "No data received.";
+    // If the request method is not POST, return a 405 Method Not Allowed response
+    http_response_code(405);
+    echo json_encode(array('error' => 'Method Not Allowed'));
 }
-?>
